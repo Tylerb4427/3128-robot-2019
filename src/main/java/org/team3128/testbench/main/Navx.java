@@ -102,7 +102,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-public class MainTestBench extends NarwhalRobot {
+public class Navx extends NarwhalRobot {
     AHRS ahrs;
     public TalonSRX boi1, boi2;
     public ListenerManager listenerLeft, listenerRight;
@@ -176,7 +176,13 @@ public class MainTestBench extends NarwhalRobot {
 
     @Override
     protected void teleopPeriodic() {
-
+    Log.debug("Debug", "####################################");
+    Log.debug("Yaw:", Float.toString(ahrs.getYaw()));
+    Log.debug("Pitch", Float.toString(ahrs.getPitch()));
+    Log.debug("Roll:", Float.toString(ahrs.getRoll()));
+    Log.debug("AccelX:",Float.toString(ahrs.getWorldLinearAccelX()));
+    Log.debug("AccelY:",Float.toString(ahrs.getWorldLinearAccelY()));
+    boi1.set(ControlMode.PercentOutput,((int)(ahrs.getYaw())/10));
     }
 
     @Override
@@ -185,7 +191,7 @@ public class MainTestBench extends NarwhalRobot {
     }
 
     public static void main(String[] args) {
-        RobotBase.startRobot(MainTestBench::new);
+        RobotBase.startRobot(Navx::new);
     }
 
 }
