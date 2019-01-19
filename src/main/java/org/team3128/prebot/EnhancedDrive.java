@@ -1,16 +1,24 @@
-package org.team3128.prebot.main;
+package org.team3128.prebot;
 
+
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import org.team3128.common.NarwhalRobot;
-import org.team3128.prebot.autonomous.*;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import org.team3128.common.drive.SRXTankDrive;
 import org.team3128.common.util.Constants;
+import org.team3128.common.util.units.Angle;
 import org.team3128.common.util.units.Length;
 import org.team3128.common.util.Log;
 import org.team3128.common.util.RobotMath;
 import org.team3128.common.listener.ListenerManager;
+import org.team3128.common.listener.POVValue;
+import org.team3128.common.listener.controltypes.POV;
 import org.team3128.common.narwhaldashboard.NarwhalDashboard;
 import org.team3128.common.listener.controllers.ControllerExtreme3D;
 import org.team3128.common.listener.controltypes.Button;
@@ -18,14 +26,14 @@ import org.team3128.common.listener.controltypes.Button;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.command.CommandGroup;
 
 
-public class MainPrebot extends NarwhalRobot {
+public class EnhancedDrive extends NarwhalRobot {
+    AHRS ahrs;
     public TalonSRX rightDriveFront;
     public TalonSRX rightDriveMiddle;
     public TalonSRX rightDriveBack;
@@ -53,11 +61,12 @@ public class MainPrebot extends NarwhalRobot {
     public double valCurrent3 = 0.0;
     public double valCurrent4 = 0.0;
 
-    public CommandGroup cmdRunner;
+    //public CommandGroup cmdRunner;
 
 	@Override
 	protected void constructHardware()
 	{
+        ahrs = new AHRS(SPI.Port.kMXP); 
 		table = NetworkTableInstance.getDefault().getTable("limelight");
 
         rightDriveFront = new TalonSRX(0);
@@ -100,12 +109,12 @@ public class MainPrebot extends NarwhalRobot {
 		gyro.calibrate();
     }
     
-    @Override
-    protected void constructAutoPrograms() {
-        NarwhalDashboard.addAuto("Turn", new Turn(tankDrive));
-        NarwhalDashboard.addAuto("Forward", new Forward(tankDrive));
-        NarwhalDashboard.addAuto("Test", new Test(tankDrive));
-    }
+    //@Override
+    // protected void constructAutoPrograms() {
+    //     NarwhalDashboard.addAuto("Turn", new Turn(tankDrive));
+    //     NarwhalDashboard.addAuto("Forward", new Forward(tankDrive));
+    //     NarwhalDashboard.addAuto("Test", new Test(tankDrive));
+    // }
 
 	@Override
 	protected void setupListeners() {
@@ -199,7 +208,7 @@ public class MainPrebot extends NarwhalRobot {
 
             double d = (28.5 - 9.5) / Math.tan(28.0 + valCurrent2);
 
-            cmdRunner.addSequential(tankDrive.new CmdMoveForward((d * Length.in), 10000, true));
+            //cmdRunner.addSequential(tankDrive.new CmdMoveForward((d * Length.in), 10000, true));
 
             Log.info("tyav", String.valueOf(valCurrent2));
             NarwhalDashboard.put("tyav", String.valueOf(valCurrent2));
@@ -229,6 +238,22 @@ public class MainPrebot extends NarwhalRobot {
 		
     }
     public static void main(String... args) {
-        RobotBase.startRobot(MainPrebot::new);
+        RobotBase.startRobot(EnhancedDrive::new);
+    }
+
+
+    @Override
+    protected void teleopInit() {
+
+    }
+
+    @Override
+    protected void teleopPeriodic() {
+        Float ThetaThreshold = (float)10;     
+    Float Theta=ahrs.getYaw();
+    rightDriveFront.set(ControlMode.PercentOutput,-(.30+(Theta/100)));
+    leftDriveFront.set(ControlMode.PercentOutput,-(.30-(Theta/100)));
+    Log.debug("Pitch", Float.toString(Theta));
+    
     }
 }
